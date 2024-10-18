@@ -1,0 +1,11 @@
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://www.ehcache.org/ehcache.xsd"
+         updateCheck="false">
+
+    <cache name="dataCache"
+           maxEntriesLocalHeap="100"
+           eternal="false"
+           timeToLiveSeconds="300"
+           timeToIdleSeconds="300">
+    </cache>
+</ehcache>

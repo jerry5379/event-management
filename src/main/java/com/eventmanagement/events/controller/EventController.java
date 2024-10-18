@@ -9,6 +9,7 @@ import com.eventmanagement.events.service.interfaces.EventService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 
 import org.springframework.data.domain.PageRequest;
@@ -47,6 +48,7 @@ public class EventController {
     )
     @Authorization
     @GetMapping
+    @Cacheable(value = "dataCache")
     public ResponseEntity<ApiResponse<?>> viewEvents(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
