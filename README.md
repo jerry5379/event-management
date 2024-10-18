@@ -96,6 +96,16 @@ Once the application starts, access it at:
     API Base URL: http://localhost:8080
     Swagger API Documentation: http://localhost:8080/swagger-ui/index.html
 
+User / Admin Registration
+
+    curl -X POST http://localhost:8080/login \
+        -H "Content-Type: application/json" \
+        -d '{ 
+        "email":"xyz12345om",
+            "password":"123456",
+            "confirmPassword":"123456",
+            "role": "admin"}'    
+
 JWT Authentication Flow
 
     Authenticate: Obtain a JWT token by posting your credentials to /login.
@@ -105,13 +115,14 @@ Example Request to Authenticate:
 
     curl -X POST http://localhost:8080/login \
         -H "Content-Type: application/json" \
-        -d '{"username":"user@gmail.com","password":"123456"}'
+        -d '{"email":"user@gmail.com","password":"123456"}'
     
     Example Request to Access a Protected Endpoint:
     
     
     curl -X GET http://localhost:8080/event \
         -H "Authorization: Bearer <your-jwt-token>"
+
 
 Running Tests
 To run unit and integration tests:
