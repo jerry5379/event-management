@@ -1,4 +1,4 @@
-Event Management System
+**Event Management System**
 
 This project is a Spring Boot-based Event Management System featuring JWT Authentication, API security, and event-related functionalities. It is structured to handle authentication, event management, and common services, following a clean architecture with proper separation of concerns.
 
