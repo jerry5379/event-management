@@ -46,9 +46,11 @@ public class Events {
     private String type;
 
     @Column
+    @Lob
     private byte[] eventFile;
 
     @Column
+    @Lob
     private byte[] attendeeList;
 
     @Column

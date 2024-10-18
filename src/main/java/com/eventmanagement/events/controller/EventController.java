@@ -3,6 +3,7 @@ package com.eventmanagement.events.controller;
 
 import com.eventmanagement.common.ApiResponse;
 import com.eventmanagement.events.annotations.Authorization;
+import com.eventmanagement.events.models.EventEditDto;
 import com.eventmanagement.events.models.EventsDTO;
 import com.eventmanagement.events.service.interfaces.EventService;
 
@@ -20,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -86,7 +88,7 @@ public class EventController {
     )
     @PostMapping("/create")
     @Authorization
-    public ResponseEntity<?> addEvent(@RequestBody EventsDTO eventDTO) {
+    public ResponseEntity<?> addEvent(@ModelAttribute EventsDTO eventDTO)  {
         ApiResponse<?> savedEvent = eventService.addOrUpdateEvent(eventDTO);
         return ResponseEntity.ok(savedEvent);
     }
@@ -107,9 +109,9 @@ public class EventController {
     )
     @PostMapping("edit/{id}")
     @Authorization
-    public ResponseEntity<?> editEvent(@PathVariable Long id, @RequestBody EventsDTO eventDTO) {
+    public ResponseEntity<?> editEvent(@PathVariable Long id, @RequestBody EventEditDto eventDTO) {
         eventDTO.setId(id);
-        ApiResponse<?> updatedEvent = eventService.addOrUpdateEvent(eventDTO);
+        ApiResponse<?> updatedEvent = eventService.updateEvent(eventDTO);
         return ResponseEntity.ok(updatedEvent);
     }
 

@@ -1,6 +1,7 @@
 package com.eventmanagement.events.service.implementation;
 
 import com.eventmanagement.common.ApiResponse;
+import com.eventmanagement.events.models.EventEditDto;
 import com.eventmanagement.events.models.Events;
 import com.eventmanagement.events.models.EventsDTO;
 import com.eventmanagement.events.repository.EventRepository;
@@ -11,6 +12,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Optional;
 
@@ -22,34 +27,39 @@ public class EventServiceImpl implements EventService {
     @Override
     public ApiResponse<?> addOrUpdateEvent(EventsDTO eventDTO) {
         Events event = convertToEntity(eventDTO);
-        Optional<Events> existingEventOptional = eventRepository.findById(eventDTO.getId());
-        if (existingEventOptional.isPresent()) {
-            Events existingEvent = existingEventOptional.get();
-
-            if (eventDTO.getName() != null) {
-                existingEvent.setName(eventDTO.getName());
-            }
-            if (eventDTO.getDescription() != null) {
-                existingEvent.setDescription(eventDTO.getDescription());
-            }
-            if (eventDTO.getStartDate() != null) {
-                existingEvent.setStartDate(eventDTO.getStartDate());
-            }
-            if (eventDTO.getEndDate() != null) {
-                existingEvent.setEndDate(eventDTO.getEndDate());
-            }
-            if (eventDTO.getType() != null) {
-                existingEvent.setType(eventDTO.getType());
-            }
-            if (eventDTO.getWebLink() != null) {
-                existingEvent.setWebLink(eventDTO.getWebLink());
-            }
-            Events updatedEvents = eventRepository.save(existingEvent);
-            return ApiResponse.success(HttpStatus.CREATED.value(), "Event Updated successfully.", updatedEvents);
-        }
         Events savedEvent = eventRepository.save(event);
-        EventsDTO eventsDTO=  convertToDTO(savedEvent);
-        return ApiResponse.success(HttpStatus.CREATED.value(), "Event Saved successfully.", eventsDTO);
+        return ApiResponse.success(HttpStatus.OK.value(), "Event Saved successfully.", savedEvent.getName());
+    }
+
+    @Override
+    public ApiResponse<?> updateEvent(EventEditDto eventDTO) {
+            Optional<Events> existingEventOptional = eventRepository.findById(eventDTO.getId());
+            if (existingEventOptional.isPresent()) {
+                Events existingEvent = existingEventOptional.get();
+
+                if (eventDTO.getName() != null) {
+                    existingEvent.setName(eventDTO.getName());
+                }
+                if (eventDTO.getDescription() != null) {
+                    existingEvent.setDescription(eventDTO.getDescription());
+                }
+                if (eventDTO.getStartDate() != null) {
+                    existingEvent.setStartDate(convertToDate(eventDTO.getStartDate()));
+                }
+                if (eventDTO.getEndDate() != null) {
+                    existingEvent.setEndDate(convertToDate(eventDTO.getEndDate()));
+                }
+                if (eventDTO.getType() != null) {
+                    existingEvent.setType(eventDTO.getType());
+                }
+                if (eventDTO.getWebLink() != null) {
+                    existingEvent.setWebLink(eventDTO.getWebLink());
+                }
+                Events updatedEvents = eventRepository.save(existingEvent);
+                return ApiResponse.success(HttpStatus.OK.value(), "Event Updated successfully.", updatedEvents.getName());
+            }
+        return ApiResponse.success(HttpStatus.NOT_FOUND.value(), "No Data Found.", null);
+
     }
     @Override
     public  ApiResponse<?> deleteEvent(Long id) {
@@ -67,65 +77,52 @@ public class EventServiceImpl implements EventService {
         return eventsPage.map(this::convertToDTO);
     }
 
-    //
-//    @Autowired
-//    private EventRepository eventRepository;
-//
-//    @Override
-//    public Page<EventsDTO> getAllEvents(int page, int size) {
-//        Pageable pageable = PageRequest.of(page, size);
-//        Page<Events> eventsPage = eventRepository.findAll(pageable);
-//        return eventsPage.map(this::convertToDTO);
-//    }
-//
-//    @Override
-//    public List<EventsDTO> searchEvents(String name, Date startDate, Date endDate) {
-//        if (name != null && !name.isEmpty()) {
-//            return eventRepository.findByNameContaining(name).stream()
-//                    .map(this::convertToDTO)
-//                    .collect(Collectors.toList());
-//        } else if (startDate != null && endDate != null) {
-////            return eventRepository.findByStartDateBetween(startDate, endDate).stream()
-////                    .map(this::convertToDTO)
-////                    .collect(Collectors.toList());
-//
-//        }
-//        return List.of();
-//    }
-//
-//    @Override
-//    public EventsDTO addOrUpdateEvent(EventsDTO eventDTO) {
-//        Events event = convertToEntity(eventDTO);
-//        Events savedEvent = eventRepository.save(event);
-//        return convertToDTO(savedEvent);
-//    }
-//
-//    @Override
-//    public void removeEvent(Long id) {
-//        eventRepository.deleteById(id);
-//    }
-//
+
     private EventsDTO convertToDTO(Events event) {
         EventsDTO eventsDTO = new EventsDTO();
-        eventsDTO.setId(event.getId());
         eventsDTO.setName(event.getName());
         eventsDTO.setDescription(event.getDescription());
         eventsDTO.setType(event.getType());
-        eventsDTO.setEndDate(event.getEndDate());
-        eventsDTO.setStartDate(event.getStartDate());
+        eventsDTO.setEndDate(event.getEndDate().toString());
+        eventsDTO.setStartDate(event.getStartDate().toString());
         eventsDTO.setWebLink(event.getWebLink());
         return eventsDTO;
     }
 //
-    private Events convertToEntity(EventsDTO eventDTO) {
+
+    private Events convertToEntity(EventsDTO eventDTO){
         Events event = new Events();
-        event.setId(eventDTO.getId());
         event.setName(eventDTO.getName());
         event.setDescription(eventDTO.getDescription());
-        event.setStartDate(eventDTO.getStartDate());
-        event.setEndDate(eventDTO.getEndDate());
+        event.setStartDate(convertToDate(eventDTO.getStartDate()));
+        event.setEndDate(convertToDate(eventDTO.getEndDate()));
         event.setType(eventDTO.getType());
         event.setWebLink(eventDTO.getWebLink());
+        try {
+            if (eventDTO.getEventFile() != null) {
+                event.setEventFile(eventDTO.getEventFile().getBytes());
+            }
+            if (eventDTO.getAttendeeList() != null) {
+                event.setAttendeeList(eventDTO.getAttendeeList().getBytes());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return event;
+    }
+
+    public static Date convertToDate(String dateString) {
+        if (dateString == null || dateString.isEmpty()) {
+            return null; // or throw an exception if you prefer
+        }
+        try {
+            // Using java.time for conversion
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+            LocalDateTime localDateTime = LocalDateTime.parse(dateString, formatter);
+            return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        } catch (Exception e) {
+            // Handle parse exceptions, log or rethrow as needed
+            throw new IllegalArgumentException("Invalid date format: " + dateString, e);
+        }
     }
 }
